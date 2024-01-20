@@ -8,6 +8,7 @@ import {
   AlertDialogOverlay,
   Box,
   Button,
+  Center,
   Container,
   FormControl,
   FormErrorMessage,
@@ -28,16 +29,20 @@ import {
 import { useRef, useState} from 'react'
 import { useFormik } from 'formik'
 import * as yup from 'yup'
-import { useFetchProducts } from '@/hooks/product/useFetchProducts'
-import { useCreateProduct } from '@/hooks/product/useCreateProduct'
-import { useDeleteProduct } from '@/hooks/product/useDeleteProduct'
-import { useEditProduct } from '@/hooks/product/useEditProduct'
+import { useFetchProducts, useCreateProduct, useDeleteProduct, useEditProduct } from '@/hooks/product'
 
 export default function Home() {
 
-  const { data, isLoading: productsIsLoading, refetch: refetchProducts } = useFetchProducts()
-
   const toast = useToast()
+
+  const { data, isLoading: productsIsLoading, refetch: refetchProducts } = useFetchProducts({
+    onError: () => {
+      toast({
+        title: "An error occurred",
+        status: "error",
+      })
+    }
+  })
 
   const [deletedProductId, setDeletedProductId] = useState(null)
 
@@ -46,15 +51,17 @@ export default function Home() {
 
   const formik = useFormik({
     initialValues: {
+      id: "",
       title: "",
       price: 0,
       description: "",
       thumbnail: "",
-      id: "",
     },
     validationSchema: yup.object().shape({
       title: yup.string().required(),
-      price: yup.string().required(),
+      price: yup.string().test('not-zero', 'price is a required field', function(value){
+        return value != 0 || value != '0';
+      }).required(),
       description: yup.string().required(),
       thumbnail: yup.string().required(),
     }),
@@ -164,15 +171,15 @@ export default function Home() {
 
   const handleDelete = () => {
     deleteProduct(deletedProductId)
-    
   }
 
-  const onClickEdit = (product) => {
-    formik.setFieldValue("id", product.id)
-    formik.setFieldValue("title", product.title)
-    formik.setFieldValue("price", product.price)
-    formik.setFieldValue("description", product.description)
-    formik.setFieldValue("thumbnail", product.thumbnail)
+  const onClickEdit = async (product) => {
+    await formik.setFieldValue("id", product.id)
+    await formik.setFieldValue("title", product.title)
+    await formik.setFieldValue("price", product.price)
+    await formik.setFieldValue("description", product.description)
+    await formik.setFieldValue("thumbnail", product.thumbnail)
+    await formik.setFieldTouched(["id", "title", "price", "description", "thumbnail"], true);
   }
 
   const renderProducts = () => {
@@ -213,10 +220,10 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main>
+      <main className='dark'>
         <Container maxW='container.xl' mb={10}>
-          <Heading>Home Page</Heading>
-          <Table mb={6}>
+          <Heading my={5} ml={5}>Home Page</Heading>
+          <Table mb={10}>
             <Thead>
               <Tr>
                 <Th>#</Th>
@@ -230,8 +237,10 @@ export default function Home() {
               {
                 productsIsLoading 
                 ? <Tr>
-                    <Td>
-                      <Spinner />
+                    <Td colSpan={5}>
+                      <Center>
+                        <Spinner />
+                      </Center>
                     </Td>
                   </Tr>  
                 : renderProducts()
