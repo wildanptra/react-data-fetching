@@ -1,27 +1,8 @@
 import Head from 'next/head'
-import { 
-  AlertDialog,
-  AlertDialogBody,
-  AlertDialogContent,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogOverlay,
-  Box,
+import {
   Button,
-  Center,
   Container,
-  FormControl,
-  FormErrorMessage,
-  FormLabel,
-  Heading,
-  Input,
-  Spinner,
-  Stack,
-  Table,
-  Tbody,
   Td,
-  Th,
-  Thead,
   Tr,
   useDisclosure,
   useToast,
@@ -29,7 +10,15 @@ import {
 import { useRef, useState} from 'react'
 import { useFormik } from 'formik'
 import * as yup from 'yup'
-import { useFetchProducts, useCreateProduct, useDeleteProduct, useEditProduct } from '@/hooks/product'
+import { 
+  useFetchProducts, 
+  useCreateProduct, 
+  useDeleteProduct, 
+  useEditProduct 
+} from '@/hooks/product'
+import HeaderPage from '@/components/HeaderPage'
+import ProductTable from '@/components/ProductTable'
+import ProductForm from '@/components/ProductForm'
 
 export default function Home() {
 
@@ -220,121 +209,26 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className='dark'>
+      <main>
         <Container maxW='container.xl' mb={10}>
-          <Heading my={5} ml={5}>Home Page</Heading>
-          <Table mb={10}>
-            <Thead>
-              <Tr>
-                <Th>#</Th>
-                <Th>Title</Th>
-                <Th>Price</Th>
-                <Th>Description</Th>
-                <Th width='xs'>Action</Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {
-                productsIsLoading 
-                ? <Tr>
-                    <Td colSpan={5}>
-                      <Center>
-                        <Spinner />
-                      </Center>
-                    </Td>
-                  </Tr>  
-                : renderProducts()
-              }
-            </Tbody>
-          </ Table>
-          <Box padding="4" border="1px solid lightgray" borderRadius="4px" mt="8">
-            <form onSubmit={formik.handleSubmit}>
-              <Stack spacing={3}>
-                <Input
-                  type='hidden' 
-                  onChange={handleFormInput} 
-                  name="id" 
-                  value={formik.values.id} 
-                />
-
-                <FormControl isInvalid={formik.errors.title}>
-                  <FormLabel>Product Title</FormLabel>
-                  <Input 
-                    onChange={handleFormInput} 
-                    name="title" 
-                    value={formik.values.title} 
-                  />
-                  <FormErrorMessage>{formik.errors.title}</FormErrorMessage>
-                </FormControl>
-
-                <FormControl isInvalid={formik.errors.price}>
-                  <FormLabel>Price</FormLabel>
-                  <Input 
-                    onChange={handleFormInputCurrency}
-                    name="price"
-                    value={formik.values.price}
-                  />
-                  <FormErrorMessage>{formik.errors.price}</FormErrorMessage>
-                </FormControl>
-
-                <FormControl isInvalid={formik.errors.description}>
-                  <FormLabel>Description</FormLabel>
-                  <Input 
-                    onChange={handleFormInput} 
-                    name="description" 
-                    value={formik.values.description} 
-                  />
-                  <FormErrorMessage>{formik.errors.description}</FormErrorMessage>
-                </FormControl>
-
-                <FormControl isInvalid={formik.errors.thumbnail}>
-                  <FormLabel>Thumbnail</FormLabel>
-                  <Input 
-                    onChange={handleFormInput} 
-                    name="thumbnail" 
-                    value={formik.values.thumbnail} 
-                  />
-                  <FormErrorMessage>{formik.errors.thumbnail}</FormErrorMessage>
-                </FormControl>
-
-                <Button type="submit" isDisabled={createProductIsLoading || editProductIsLoading} colorScheme="teal" mt={3}>
-                  { createProductIsLoading || editProductIsLoading ? <Spinner /> : "Submit" } 
-                </Button>
-              </Stack>
-            </form>
-          </Box>
+          <HeaderPage pageName={'Home Page'} />
+          <ProductTable 
+            productsIsLoading={productsIsLoading} 
+            renderProducts={renderProducts}
+            isOpenModalDelete={isOpenModalDelete}
+            onCloseModalDelete={onCloseModalDelete}
+            handleDelete={handleDelete}
+            cancelRefModalDelete={cancelRefModalDelete}
+          />
+          <ProductForm 
+            formik={formik}
+            createProductIsLoading={createProductIsLoading}
+            editProductIsLoading={editProductIsLoading}
+            handleFormInput={handleFormInput}
+            handleFormInputCurrency={handleFormInputCurrency}
+          />
         </ Container>
       </main>
-
-      {/* Alert Dialog Delete */}
-      <AlertDialog
-        isOpen={isOpenModalDelete}
-        leastDestructiveRef={cancelRefModalDelete}
-        onClose={onCloseModalDelete}
-      >
-        <AlertDialogOverlay>
-          <AlertDialogContent>
-            <AlertDialogHeader fontSize='lg' fontWeight='bold'>
-              Delete Product
-            </AlertDialogHeader>
-
-            <AlertDialogBody>
-              Are you sure? You can not undo this action afterwards.
-            </AlertDialogBody>
-
-            <AlertDialogFooter>
-              <Button ref={cancelRefModalDelete} onClick={onCloseModalDelete}>
-                Cancel
-              </Button>
-              <Button colorScheme='red' onClick={handleDelete} ml={3}>
-                Delete
-              </Button>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialogOverlay>
-      </AlertDialog>
-      {/* End Alert Dialog Delete */}
-
     </>
   )
 }
